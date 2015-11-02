@@ -53,10 +53,10 @@ public class PuntoAtencion {
 	/**
 	 * Constantes de algoritmos
 	 */
-	private final static String RSA = "RSA";
-	private final static String HMACMD5 = "HMACMD5";
-	private final static String HMACSHA1 = "HMACSHA1";
-	private final static String HMACSHA256 = "HMACSHA256";
+	public final static String RSA = "RSA";
+	public final static String HMACMD5 = "HMACMD5";
+	public final static String HMACSHA1 = "HMACSHA1";
+	public final static String HMACSHA256 = "HMACSHA256";
 
 	/**
 	 * Atributos
