@@ -149,10 +149,12 @@ public class Protocolo {
 
 			// Confirmando al cliente que los algoritmos son soportados.
 			write(writer, RTA + SEPARADOR + OK);
-
+			
 			// ////////////////////////////////////////////////////////////////////////
 			// Recibiendo el certificado del cliente y el num1, si no se puede recibir el certificado se envía el error
 			// ////////////////////////////////////////////////////////////////////////
+			
+			long startAuth=System.nanoTime();
 			
 			linea = read(reader);
 			num1=linea.split(":")[0];
@@ -172,6 +174,7 @@ public class Protocolo {
 				write(writer, RTA + SEPARADOR + OK);
 				
 			} catch (Exception e) {
+				System.out.println("ERROR");
 				write(writer, RTA + SEPARADOR + ERROR);
 				write(writer, e.getMessage());
 				throw new FontFormatException("Error en el certificado recibido, no se puede decodificar");
@@ -191,6 +194,7 @@ public class Protocolo {
 				s.getOutputStream().flush();
 				
 			} catch (Exception e) {
+				System.out.println("ERROR");
 				//Nunca va a pasar por acá, el certificado del servidor está bien
 			}	
 						
@@ -235,10 +239,13 @@ public class Protocolo {
 				write(writer,  "El numero no corresponde con el enviado, cerrando conexión");
 				throw new FontFormatException(linea);
 			}
+			long endAuth=System.nanoTime();
+			System.out.println(endAuth-startAuth+" Autenticación");
 			
 			// ////////////////////////////////////////////////////////////////////////
 			// Recibe la llave simétrica cifrada con la llave publica del servidor y con la llave privada del puntoi de atencion
 			// ////////////////////////////////////////////////////////////////////////
+			long startAct=System.nanoTime();
 			linea = read(reader);
 			byte[] simCiph= Transformacion.decodificar(linea.split(":")[1]);
 			byte[] sim1ciph= new byte[128];
@@ -296,26 +303,32 @@ public class Protocolo {
 				write(writer, RTA + SEPARADOR +  ERROR);
 				write(writer,"El resumen digital no correspone a las ordenes enviadas, el archivo se encuentra corrupto");
 			}
-			
-			
+			long endAct=System.nanoTime();
+			System.out.println(endAct-startAct+" Actualizar");
 			
 		} catch (NullPointerException e) {
+			System.out.println("ERROR");
 			// Probablemente la conexion fue interrumpida.
 			printError(e);
 		} catch (IOException e) {
+			System.out.println("ERROR");
 			// Error en la conexion con el cliente.
 			printError(e);
 		} catch (FontFormatException e) {
+			System.out.println("ERROR");
 			// Si hubo errores en el protocolo por parte del cliente.
 			printError(e);
 		} catch (NoSuchAlgorithmException e) {
+			System.out.println("ERROR");
 			// Si los algoritmos enviados no son soportados por el servidor.
 			printError(e);
 		} catch (InvalidKeyException e) {
+			System.out.println("ERROR");
 			// El certificado no se pudo generar.
 			// No deberia alcanzarce en condiciones normales de ejecuci��n.
 			printError(e);
 		} catch (IllegalStateException e) {
+			System.out.println("ERROR");
 			// El certificado no se pudo generar.
 			// No deberia alcanzarce en condiciones normales de ejecuci��n.
 			printError(e);
