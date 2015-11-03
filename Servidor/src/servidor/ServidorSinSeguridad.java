@@ -1,7 +1,6 @@
-/**
- * 
- */
+
 package servidor;
+
 
 
 import java.io.IOException;
@@ -26,7 +25,7 @@ import java.util.concurrent.Semaphore;
  * @author José Miguel Suárez Lopera 		 -  201510
  * @author Cristian Fabián Brochero Rodríguez-  201520
  */
-public class Servidor implements Runnable  {
+public class ServidorSinSeguridad implements Runnable  {
 
 	/**
 	 * Constante que especifica el tiempo máximo en milisegundos que se esperara 
@@ -37,12 +36,7 @@ public class Servidor implements Runnable  {
 	/**
 	 * Constante que especifica el numero de threads que se usan en el pool de conexiones.
 	 */
-	public static final int N_THREADS = 16;
-	
-	/**
-	 * Constante que especifica la carga.
-	 */
-	public static final int CARGA = 400;
+	public static final int N_THREADS = 6;
 
 	/**
 	 * Puerto en el cual escucha el servidor.
@@ -57,14 +51,12 @@ public class Servidor implements Runnable  {
 	/**
 	 * El semaforo que permite tomar turnos para atender las solicitudes.
 	 */
-	private Semaphore semaphore;
+	private static Semaphore semaphore;
 
 	/**
 	 * El id del Thread
 	 */
 	private int id;
-	
-	private static int contador;
 
 	/**
 	 * Metodo main del servidor con seguridad que inicializa un 
@@ -78,30 +70,31 @@ public class Servidor implements Runnable  {
 		// Necesario para crear llaves.
 		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());		
 
-		contador=1;
 		// Crea el socket que escucha en el puerto seleccionado.
-		socket = new ServerSocket(PUERTO,601);
+		socket = new ServerSocket(PUERTO);
 
 		// Crea un semaforo que da turnos para usar el socket.
 		Semaphore sem = new Semaphore(1);
-		int numTreads= N_THREADS;
-		contador=1;
+		int numTreads= 50;
 		 ExecutorService executor = Executors.newFixedThreadPool(numTreads);
 		 
 		         for (int i = 0; i < numTreads; i++) {
+		 
 		             Runnable worker = new Servidor(i,sem);
 		 
 		             executor.execute(worker);
 		 
 		           }
-		         System.out.println("El servidor esta listo para aceptar conexiones.");
+		 		System.out.println("El servidor esta listo para aceptar conexiones.");
+
+		         executor.shutdown();
 		 
 		         while (!executor.isTerminated()) {
 		 
 		         }
 		 
 		         System.out.println("Finished all threads");
-		         
+
 
 	}
 
@@ -116,9 +109,10 @@ public class Servidor implements Runnable  {
 	 *             Si hubo un problema con el semaforo.
 	 * @throws SocketException 
 	 */
-	public Servidor(int id, Semaphore s) throws  SocketException {
+	public ServidorSinSeguridad(int id, Semaphore s) throws  SocketException {
 		this.id = id;
 		semaphore=s;
+		
 	}
 
 	/**
@@ -126,19 +120,16 @@ public class Servidor implements Runnable  {
 	 */
 	@Override
 	public void run() {
-		
 		while (true) {
 			Socket s = null;
 			// ////////////////////////////////////////////////////////////////////////
 			// Recibe una conexion del socket.
 			// ////////////////////////////////////////////////////////////////////////
-			int cont;
+
 			try {
 				semaphore.acquire();
 				s = socket.accept();
 				s.setSoTimeout(TIME_OUT);
-				contador++;
-				cont=contador;
 			} catch (IOException e) {
 				e.printStackTrace();
 				semaphore.release();
@@ -146,14 +137,14 @@ public class Servidor implements Runnable  {
 			} catch (Exception e) {
 				// Si hubo algun error tomando turno en el semaforo.
 				// No deberia alcanzarse en condiciones normales de ejecucion.
+				semaphore.release();
 				e.printStackTrace();
 				continue;
 			}
 			semaphore.release();
-
+			System.out.println("Thread " + id + " recibe a un cliente.");
 			ProtocoloSinSeguridad protocolo =new ProtocoloSinSeguridad();
-			protocolo.atenderCliente(s, cont);
-			
+			protocolo.atenderCliente(s,1);
 		}
 	}
 
