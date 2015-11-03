@@ -37,7 +37,12 @@ public class Servidor implements Runnable  {
 	/**
 	 * Constante que especifica el numero de threads que se usan en el pool de conexiones.
 	 */
-	public static final int N_THREADS = 6;
+	public static final int N_THREADS = 16;
+	
+	/**
+	 * Constante que especifica la carga.
+	 */
+	public static final int CARGA = 400;
 
 	/**
 	 * Puerto en el cual escucha el servidor.
@@ -58,6 +63,8 @@ public class Servidor implements Runnable  {
 	 * El id del Thread
 	 */
 	private int id;
+	
+	private static int contador;
 
 	/**
 	 * Metodo main del servidor con seguridad que inicializa un 
@@ -71,31 +78,30 @@ public class Servidor implements Runnable  {
 		// Necesario para crear llaves.
 		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());		
 
+		contador=1;
 		// Crea el socket que escucha en el puerto seleccionado.
-		socket = new ServerSocket(PUERTO);
+		socket = new ServerSocket(PUERTO,601);
 
 		// Crea un semaforo que da turnos para usar el socket.
 		Semaphore sem = new Semaphore(1);
-		int numTreads= 50;
+		int numTreads= N_THREADS;
+		contador=1;
 		 ExecutorService executor = Executors.newFixedThreadPool(numTreads);
 		 
 		         for (int i = 0; i < numTreads; i++) {
-		 
 		             Runnable worker = new Servidor(i,sem);
 		 
 		             executor.execute(worker);
 		 
 		           }
-		 		System.out.println("El servidor esta listo para aceptar conexiones.");
-
-		         executor.shutdown();
+		         System.out.println("El servidor esta listo para aceptar conexiones.");
 		 
 		         while (!executor.isTerminated()) {
 		 
 		         }
 		 
 		         System.out.println("Finished all threads");
-
+		         
 
 	}
 
@@ -113,7 +119,6 @@ public class Servidor implements Runnable  {
 	public Servidor(int id, Semaphore s) throws  SocketException {
 		this.id = id;
 		semaphore=s;
-		
 	}
 
 	/**
@@ -121,16 +126,19 @@ public class Servidor implements Runnable  {
 	 */
 	@Override
 	public void run() {
+		
 		while (true) {
 			Socket s = null;
 			// ////////////////////////////////////////////////////////////////////////
 			// Recibe una conexion del socket.
 			// ////////////////////////////////////////////////////////////////////////
-
+			int cont;
 			try {
 				semaphore.acquire();
 				s = socket.accept();
 				s.setSoTimeout(TIME_OUT);
+				contador++;
+				cont=contador;
 			} catch (IOException e) {
 				e.printStackTrace();
 				semaphore.release();
@@ -142,9 +150,10 @@ public class Servidor implements Runnable  {
 				continue;
 			}
 			semaphore.release();
-			System.out.println("Thread " + id + " recibe a un cliente.");
+
 			Protocolo protocolo =new Protocolo();
-			protocolo.atenderCliente(s);
+			protocolo.atenderCliente(s, cont);
+			
 		}
 	}
 

@@ -26,6 +26,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.security.cert.CertificateNotYetValidException;
 
 import com.sun.corba.se.impl.oa.poa.ActiveObjectMap.Key;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.sym;
 
 import utils.Seguridad;
 import utils.Transformacion;
@@ -70,24 +71,34 @@ public class Protocolo {
 	public static final String ERROR_CONFIRMACION = "Error confirmando recepcion de numero cifrado. Cerrando conexion";
 	public String num1;
 	public String num2;
+	private int cont;
+//	public Escritor escritor;
+//	
+//	public Protocolo (Escritor pEscritor){
+//		escritor=pEscritor;
+//	}
 	
 	/**
 	 * Metodo que se encarga de imprimir en consola todos los errores que se 
 	 * producen durante la ejecuación del protocolo. 
 	 * Ayuda a controlar de forma rapida el cambio entre imprimir y no imprimir este tipo de mensaje
 	 */
-	private static void printError(Exception e) {
-		if(SHOW_ERROR)		System.out.println(e.getMessage());
-		if(SHOW_S_TRACE) 	e.printStackTrace();	
+	private void printError(Exception e) {
+//			try {
+//				escritor.escribirLineaError();
+//				e.printStackTrace();
+//			} catch (IOException e1) {
+//				e.printStackTrace();
+//			}
+			System.out.println(cont+","+e.getMessage()); 
 	}
-
 	/**
 	 * Metodo que se encarga de leer los datos que envia el punto de atencion.
 	 *  Ayuda a controlar de forma rapida el cambio entre imprimir y no imprimir este tipo de mensaje
 	 */
 	private static String read(BufferedReader reader) throws IOException {
 		String linea = reader.readLine();
-		if(SHOW_IN)			System.out.println("<<PATN: " + linea);
+//		if(SHOW_IN)			System.out.println("<<PATN: " + linea);
 		return linea;
 		
 	}
@@ -98,15 +109,15 @@ public class Protocolo {
 	 */
 	private static void write(PrintWriter writer, String msg) {
 		writer.println(msg);
-		if(SHOW_OUT)		System.out.println(">>SERV: " + msg);
+//		if(SHOW_OUT)		System.out.println(">>SERV: " + msg);
 	}
 	/**
 	 * Metodo que establece el protocolo de comunicacion con el punto de atencion.
 	  */
 
-	public void atenderCliente(Socket s){
+	public void atenderCliente(Socket s, int pCont){
 		try{
-			
+			cont=pCont;
 			PrintWriter writer = new PrintWriter(s.getOutputStream(), true);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
 			// ////////////////////////////////////////////////////////////////////////
@@ -240,7 +251,7 @@ public class Protocolo {
 				throw new FontFormatException(linea);
 			}
 			long endAuth=System.nanoTime();
-			System.out.println(endAuth-startAuth+" Autenticación");
+			
 			
 			// ////////////////////////////////////////////////////////////////////////
 			// Recibe la llave simétrica cifrada con la llave publica del servidor y con la llave privada del puntoi de atencion
@@ -304,31 +315,25 @@ public class Protocolo {
 				write(writer,"El resumen digital no correspone a las ordenes enviadas, el archivo se encuentra corrupto");
 			}
 			long endAct=System.nanoTime();
-			System.out.println(endAct-startAct+" Actualizar");
-			
+//			escritor.escribirLinea((endAuth-startAuth)+"", (endAct-startAct)+"");
+			System.out.println(cont+","+(endAuth-startAuth) + "," + (endAct-startAct));
 		} catch (NullPointerException e) {
-			System.out.println("ERROR");
 			// Probablemente la conexion fue interrumpida.
 			printError(e);
 		} catch (IOException e) {
-			System.out.println("ERROR");
 			// Error en la conexion con el cliente.
 			printError(e);
 		} catch (FontFormatException e) {
-			System.out.println("ERROR");
 			// Si hubo errores en el protocolo por parte del cliente.
 			printError(e);
 		} catch (NoSuchAlgorithmException e) {
-			System.out.println("ERROR");
 			// Si los algoritmos enviados no son soportados por el servidor.
 			printError(e);
 		} catch (InvalidKeyException e) {
-			System.out.println("ERROR");
 			// El certificado no se pudo generar.
 			// No deberia alcanzarce en condiciones normales de ejecuci��n.
 			printError(e);
 		} catch (IllegalStateException e) {
-			System.out.println("ERROR");
 			// El certificado no se pudo generar.
 			// No deberia alcanzarce en condiciones normales de ejecuci��n.
 			printError(e);
