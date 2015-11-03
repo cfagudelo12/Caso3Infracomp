@@ -169,6 +169,7 @@ public class PuntoAtencionSinSeguridad {
 		//Etapa 4
 		//---------------------------------------
 		
+		out.println(numeroOrdenes);
 		
 		out.println(numeroOrdenes);
 		
@@ -200,7 +201,7 @@ public class PuntoAtencionSinSeguridad {
 	}
 
 	public static void main(String[] args) {
-		PuntoAtencion puntoAtencion = new PuntoAtencion("localhost", 443, HMACSHA256, 4);
+		PuntoAtencionSinSeguridad puntoAtencion = new PuntoAtencionSinSeguridad("localhost", 443, HMACSHA256, 4);
 		try {
 			puntoAtencion.procesar();
 		} catch (Exception e) {
