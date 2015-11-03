@@ -7,30 +7,20 @@ public class ClientServerTask extends Task{
 
 	@Override
 	public void execute() {
-		PuntoAtencion puntoAtencion = new PuntoAtencion("localhost", 443, PuntoAtencion.HMACSHA256, 4);
+		PuntoAtencion puntoAtencion = new PuntoAtencion("172.24.100.31", 443, PuntoAtencion.HMACSHA256, 4);
 		try {
 			puntoAtencion.procesar();
 		} catch (Exception e) {
-			e.printStackTrace();
-		}	}
+		}	
+	}
 	
 	@Override
 	public void fail() {
 		System.out.println(Task.MENSAJE_FAIL);
-		
 	}
 
 	@Override
 	public void success() {
 		System.out.println(Task.OK_MESSAGE);
 	}
-
-	
-	
-
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
-
 }
